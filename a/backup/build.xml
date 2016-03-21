@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><project default="testng-xslt-report" name="TRA">
+	<property name="home" value="${basedir}"/>
+    <property name="src.dir" value="${home}/src"/>
+    <property name="lib.dir" value="${home}/lib"/>
+
+    <property name="classes.dir" value="${home}/classes/TRA/NPAS"/>
+    <property name="reportsdir" value="test-output"/>
+    <property name="testNGreport" value="${reportsdir}"/>
+	
+	 <tstamp>
+	      <format property="folder" pattern="d-MMMM-yyyy hh mm aa"/>
+	  </tstamp>
+	
+	
+	
+   
+    <!-- Class-Path -->
+    <path id="classpath">
+        <pathelement location="${classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+    </path>
+	
+	 
+    <!-- Delete directories that are not needed -->
+    <target name="delete-dir">
+           
+            <delete dir="${reportsdir}"/>
+            <delete dir="${classes.dir}"/>
+    	<delete>
+    	   <fileset dir="${home}">
+    	      <include name="logs"/>
+    	   </fileset>
+    	</delete>
+    		
+            <echo> /* Deleted existing Compiled Directory Classes */ </echo>
+    </target>
+    <!-- Create Directories -->
+    <target depends="delete-dir" name="create-source-dir">
+        <mkdir dir="${classes.dir}"/>
+        <echo> /* Created Directories */ </echo>
+    </target>
+    <!-- Compiling Tests -->
+    <target depends="create-source-dir" name="compile-classes">
+        <javac debug="true" destdir="${classes.dir}" includeantruntime="false" srcdir="${src.dir}">
+            <classpath refid="classpath"/>
+        </javac>
+    	 <copy todir="${classes.dir}">
+    	            <fileset dir="${src.dir}" excludes="**/*.java"/>
+    	        </copy>
+        <echo> /* Compiled Directory Classes */ </echo>
+    </target>
+    <!-- Running Tests and TestNG report generation -->
+    <target depends="compile-classes" name="testNGreport">
+    	
+        <taskdef classpathref="classpath" resource="testngtasks"/>
+        <testng classpathref="classpath" haltOnfailure="false" outputDir="${testNGreport}">
+        	<sysproperty key="log4jconfiguration" value="${src.dir}/log4j.properties"/>
+              <xmlfileset dir="${home}" includes="testng.xml"/>
+        </testng>
+        <echo> /* Run Directory Classes */ </echo>
+    </target>
+    
+         <target  name="testng-xslt-report">
+                <!--<delete dir="${basedir}/Results/xslt_Results">
+                </delete>-->
+                <mkdir dir="${basedir}/Results/xslt_Results/${folder}">
+                </mkdir>
+                <xslt in="${basedir}/test-output/testng-results.xml" out="${basedir}/Results/xslt_Results/${folder}/index.html" style="${basedir}/src/xslt/testng-results.xsl">
+                    <param expression="${basedir}/Results/xslt_Results/${folder}" name="testNgXslt.outputDir"/>
+        
+                    <param expression="true" name="testNgXslt.sortTestCaseLinks"/>
+        
+                    <param expression="FAIL,SKIP,PASS,CONF,BY_CLASS" name="testNgXslt.testDetailsFilter"/>
+        
+                    <param expression="true" name="testNgXslt.showRuntimeTotals"/>
+        
+                    <classpath refid="classpath">
+                    </classpath>
+                </xslt>
+            </target>
+    
+</project>
